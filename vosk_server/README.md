@@ -1,104 +1,127 @@
-Vosk Live Speech-to-Text WebSocket Server
-This repository contains the backend Python application for a live speech-to-text service using Vosk. It is designed to run as a WebSocket server, primarily on an AWS EC2 instance using Docker, and expects incoming audio streams from a client application (e.g., a React frontend).
+# 🗣️ Vosk Live Speech-to-Text WebSocket Server (Local Docker + venv Version)
 
-🚀 Features
-Real-time Transcription: Processes audio streams in real-time.
+This repository contains a Python-based WebSocket server for live speech-to-text transcription using [Vosk](https://alphacephei.com/vosk/). It processes audio streams in real-time from a client (like a React app) and returns transcribed text using a Vosk model.
 
-Vosk Integration: Utilizes the Vosk open-source speech recognition toolkit.
+---
 
-WebSocket Interface: Communicates with clients via a WebSocket for efficient, continuous audio streaming and transcription updates.
+## 🚀 Features
 
-Dockerized Deployment: Packaged as a Docker image for easy, consistent, and portable deployment on cloud instances like AWS EC2.
+* **Real-time Transcription**: Stream audio and get live transcriptions.
+* **WebSocket Interface**: Designed for low-latency bi-directional communication.
+* **Vosk Integration**: Powered by open-source Vosk speech recognition.
+* **Dockerized**: Easily run locally using Docker.
+* **Offline**: Uses pre-trained local models (no API keys needed).
+* **Local Virtual Environment Option**: Run natively without Docker using Python virtual environment.
 
-Open Source Model: Uses Vosk's pre-trained, open-source language models.
+---
 
-📋 Prerequisites
-Local Development (for testing / building Docker image)
-Python 3.9+
+## 📋 Prerequisites
 
-pip (Python package installer)
+### Local Development (macOS, Linux, Windows)
 
-Docker Desktop (or Docker Engine on Linux)
+* Python 3.9+
+* `pip` (Python package installer)
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) *(Optional)*
+* `wget` or `curl`
+* `unzip`
 
-wget or curl (for downloading Vosk model)
+---
 
-unzip (for extracting Vosk model)
+## 🛠️ Setup Guide (Local)
 
-AWS EC2 Instance
-An AWS account
+### 1. Clone the Repository
 
-An EC2 Ubuntu instance (e.g., 22.04 LTS)
+```bash
+git clone https://github.com/Sumiteshwark/live-speech-to-text.git
+cd live-speech-to-text
+```
 
-SSH access to your EC2 instance with your .pem key
+### 2. Download and Prepare the Vosk Model (Already Done in Repo)
 
-Sufficient EC2 instance type (e.g., t3.medium or c5.large depending on model size and load)
-
-Security Group configured to allow SSH (port 22) and custom TCP (port 8000) inbound traffic.
-
-🛠️ Setup Guide
-This guide assumes you are starting with a fresh EC2 Ubuntu instance and connecting via SSH.
-
-1. Connect to Your EC2 Instance
-First, SSH into your EC2 Ubuntu instance using your .pem key:
-
-chmod 400 /path/to/your-key-pair.pem # Set correct permissions for your key
-ssh -i "/path/to/your-key-pair.pem" ubuntu@<YOUR_EC2_PUBLIC_IP_OR_DNS>
-
-Replace /path/to/your-key-pair.pem with the actual path to your key and <YOUR_EC2_PUBLIC_IP_OR_DNS> with your instance's public IP address or DNS name.
-
-2. Install Docker on EC2
-Update your package list and install Docker:
-
-sudo apt update
-sudo apt install docker.io -y
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker ubuntu # Add your user to the docker group
-newgrp docker # Apply the group change (or re-login to SSH session)
-docker --version # Verify Docker is installed and running
-
-3. Prepare Application Files on EC2
-Create a directory for your application and navigate into it:
-
-mkdir vosk-stt-docker
-cd vosk-stt-docker
-
-Create the following files in this directory:
-=> app.py
-=> requirements.txt
-=> Dockerfile
-
-
-# Example: Download the small English model
+```bash
+# Download the small English model
 wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 
-# Install unzip if you don't have it
-sudo apt install unzip -y
+# If unzip isn't installed, install it
+# macOS (via Homebrew)
+brew install unzip
 
 # Unzip the model
 unzip vosk-model-small-en-us-0.15.zip
 
-# Rename the unzipped folder to 'model' (crucial for Dockerfile path)
+# Rename to 'model' (Docker and local app expect this directory)
 mv vosk-model-small-en-us-0.15 model
+```
 
-Important: Ensure the unzipped model directory is named model and is in the same directory as your Dockerfile.
+> 📁 Make sure the `model` directory is at the root of the project and contains the model files.
 
-4. Build and Run the Docker Container
-Make sure you are in the vosk-stt-docker directory on your EC2 instance.
+---
 
-Build the Docker Image:
+## 🐳 Run with Docker (Optional)
+
+```bash
+# Build the Docker image
 docker build -t vosk-stt-app .
 
-Stop and Remove Old Container (if any):
-docker stop vosk-live-stt || true # Stop if running, ignore error if not
-docker rm vosk-live-stt || true  # Remove if exists, ignore error if not
+# Stop and remove any old containers (optional)
+docker stop vosk-live-stt || true
+docker rm vosk-live-stt || true
 
-Run the New Container:
+# Run the container
 docker run -d -p 8000:8000 --name vosk-live-stt vosk-stt-app
+```
 
-🔌 Usage: Connecting from a Client
-Your Vosk WebSocket server is now running on your EC2 instance, listening on port 8000. You can connect to it from your local React (or Express proxy) application.
+---
 
-WebSocket URL: ws://YOUR_EC2_PUBLIC_IP:8000
+## 🐍 Run Locally with Python Virtual Environment
 
-Replace YOUR_EC2_PUBLIC_IP with the actual Public IPv4 address or Public IPv4 DNS of your EC2 instance.
+```bash
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+python app.py
+```
+
+The WebSocket server will start and listen on:
+
+```
+ws://localhost:8000
+```
+
+---
+
+## 🔌 Usage: Connect from Client
+
+Your WebSocket server is now available at:
+
+```
+ws://localhost:8000
+```
+
+Connect to this from a frontend application (e.g., React) using WebSocket APIs to stream audio and receive transcription data.
+
+---
+
+## 🪄 Stop the Docker Container
+
+```bash
+docker stop vosk-live-stt
+docker rm vosk-live-stt
+```
+
+---
+
+## 🧪 Testing Locally
+
+You can use tools like [websocat](https://github.com/vi/websocat) or write a simple WebSocket client in JavaScript or Python to test the endpoint.
+
+---
+
+## 📜 License
+
+This project uses open-source components and is distributed under the MIT license.
