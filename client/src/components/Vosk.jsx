@@ -15,7 +15,7 @@ function VoskSTT() {
   const VOSK_SAMPLE_RATE = 16000;
 
   useEffect(() => {
-    const websocketUrl = "ws://54.146.131.110:8000"; 
+    const websocketUrl = "ws://localhost:8000"; 
     
     const ws = new WebSocket(websocketUrl);
     ws.binaryType = "arraybuffer"; 
